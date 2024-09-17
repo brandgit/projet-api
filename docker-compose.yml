@@ -1,0 +1,86 @@
+version: '3.8'  # Version de Docker Compose à utiliser, ici on utilise la version 3.8
+
+services:  # Définition des services dans ce fichier Docker Compose
+  
+  # Service MySQL pour la base de données principale
+  mysql-dashteam:
+    image: mysql:8.0  # Utilisation de l'image MySQL version 8.0 depuis Docker Hub
+    container_name: mysql-dashteam  # Nom du conteneur pour MySQL (facilite la gestion)
+    restart: always  # Redémarre toujours le conteneur en cas de plantage
+    environment:  # Variables d'environnement pour configurer MySQL
+      MYSQL_ROOT_PASSWORD: password-root  # Mot de passe pour l'utilisateur root de MySQL
+      MYSQL_DATABASE: db_dashteam  # Base de données à créer au démarrage
+      MYSQL_USER: user-non-root  # Utilisateur MySQL non-root
+      MYSQL_PASSWORD: password-non-root  # Mot de passe pour l'utilisateur MySQL non-root
+    ports:
+      - "3306:3306"  # Expose le port 3306 pour accéder à MySQL depuis l'extérieur du conteneur
+    volumes:
+      - mysql_data:/var/lib/mysql  # Volume Docker pour persister les données MySQL
+    networks:
+      - dashteam-network  # Le conteneur MySQL est sur le réseau nommé "dashteam-network"
+
+  # Service API (Node.js + Express)
+  api-dashteam:
+    build: ./api  # Utilise le Dockerfile situé dans le dossier ./api pour construire l'image de l'API
+    container_name: api-dashteam  # Nom du conteneur pour l'API
+    environment:  # Variables d'environnement pour l'API
+      - NODE_ENV=development  # Indique que l'API fonctionne en mode développement
+      - PORT=5000  # Port sur lequel l'API écoute
+      - DB_HOST=mysql-dashteam  # Nom du service MySQL, Docker utilise ce nom pour connecter les conteneurs entre eux
+      - DB_USER=user-non-root  # Nom d'utilisateur pour se connecter à MySQL
+      - DB_PASSWORD=password-non-root  # Mot de passe pour se connecter à MySQL
+      - DB_NAME=db_dashteam  # Nom de la base de données MySQL à utiliser
+      - DB_PORT=3306  # Port MySQL sur lequel se connecter
+    ports:
+      - "5000:5000"  # Expose le port 5000 pour accéder à l'API depuis l'extérieur du conteneur
+    depends_on:
+      - mysql-dashteam  # Le conteneur API dépend de MySQL, il ne démarrera pas tant que MySQL ne sera pas prêt
+    volumes:
+      - ./api:/usr/src/app  # Monte le répertoire local ./api dans le conteneur pour un développement continu
+    networks:
+      - dashteam-network  # Le conteneur API est sur le même réseau que MySQL pour permettre la communication entre eux
+
+  # Service CLIENT (Next.js)
+  # client:
+  #   build: ./client  # Utilise le Dockerfile situé dans le dossier ./client pour construire l'image du CLIENT
+  #   container_name: client-dashteam  # Nom du conteneur pour le CLIENT Next.js
+  #   environment:  # Variables d'environnement pour le CLIENT
+  #     - NODE_ENV=development  # Indique que le CLIENT fonctionne en mode développement
+  #     - PORT=3000  # Port sur lequel le CLIENT Next.js écoute
+  #   ports:
+  #     - "3000:3000"  # Expose le port 3000 pour accéder au CLIENT Next.js depuis l'extérieur du conteneur
+  #   volumes:
+  #     - ./client:/usr/src/app  # Monte le répertoire local ./client dans le conteneur pour un développement continu
+  #   networks:
+  #     - dashteam-network  # Le conteneur CLIENT est sur le même réseau que les autres services pour la communication interne
+
+  # Service Adminer pour la gestion de MySQL
+  adminer:
+    image: adminer
+    container_name: adminer-dashteam  # Nom du conteneur Adminer
+    restart: always  # Redémarre en cas de plantage
+    ports:
+      - "8080:8080"  # Expose le port 8080 pour accéder à Adminer depuis l'extérieur
+    networks:
+      - dashteam-network  # Adminer est sur le même réseau que MySQL et l'API
+
+  # Service phpMyAdmin pour la gestion de MySQL
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin-dashteam  # Nom du conteneur phpMyAdmin
+    restart: always  # Redémarre en cas de plantage
+    environment:
+      PMA_HOST: mysql-dashteam  # phpMyAdmin se connecte au service MySQL
+      MYSQL_ROOT_PASSWORD: password-root  # Mot de passe root de MySQL
+    ports:
+      - "8081:80"  # Expose phpMyAdmin sur le port 8081
+    networks:
+      - dashteam-network  # phpMyAdmin est sur le même réseau que MySQL et l'API
+
+volumes:  # Définition des volumes pour persister les données
+  mysql_data:
+    driver: local  # Utilisation d'un volume local pour stocker les données MySQL
+
+networks:  # Définition du réseau pour que les services puissent communiquer entre eux
+  dashteam-network:
+    driver: bridge  # Utilisation d'un réseau de type "bridge" pour permettre la communication entre les conteneurs

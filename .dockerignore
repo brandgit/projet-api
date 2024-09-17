@@ -1,0 +1,25 @@
+# Ignorer node_modules car il sera installé dans Docker
+node_modules
+
+# Ignorer le fichier de lock car nous voulons reconstruire les dépendances
+package-lock.json
+
+# Ignorer les fichiers de configuration ou sensibles
+.env
+
+# Ignorer les fichiers git
+.git
+.gitignore
+
+# Ignorer les logs
+logs
+*.log
+npm-debug.log*
+
+# Ignorer les fichiers temporaires du système
+.DS_Store
+Thumbs.db
+
+# Ignorer les fichiers de cache
+.cache
+dist
