@@ -40,30 +40,6 @@ services:  # Définition des services dans ce fichier Docker Compose
     networks:
       - dashteam-network  # Le conteneur API est sur le même réseau que MySQL pour permettre la communication entre eux
 
-  # Service CLIENT (Next.js)
-  # client:
-  #   build: ./client  # Utilise le Dockerfile situé dans le dossier ./client pour construire l'image du CLIENT
-  #   container_name: client-dashteam  # Nom du conteneur pour le CLIENT Next.js
-  #   environment:  # Variables d'environnement pour le CLIENT
-  #     - NODE_ENV=development  # Indique que le CLIENT fonctionne en mode développement
-  #     - PORT=3000  # Port sur lequel le CLIENT Next.js écoute
-  #   ports:
-  #     - "3000:3000"  # Expose le port 3000 pour accéder au CLIENT Next.js depuis l'extérieur du conteneur
-  #   volumes:
-  #     - ./client:/usr/src/app  # Monte le répertoire local ./client dans le conteneur pour un développement continu
-  #   networks:
-  #     - dashteam-network  # Le conteneur CLIENT est sur le même réseau que les autres services pour la communication interne
-
-  # Service Adminer pour la gestion de MySQL
-  adminer:
-    image: adminer
-    container_name: adminer-dashteam  # Nom du conteneur Adminer
-    restart: always  # Redémarre en cas de plantage
-    ports:
-      - "8080:8080"  # Expose le port 8080 pour accéder à Adminer depuis l'extérieur
-    networks:
-      - dashteam-network  # Adminer est sur le même réseau que MySQL et l'API
-
   # Service phpMyAdmin pour la gestion de MySQL
   phpmyadmin:
     image: phpmyadmin/phpmyadmin

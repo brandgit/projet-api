@@ -11,13 +11,13 @@ WORKDIR /usr/src/app
 
 # Configurer git sparse-checkout pour cloner uniquement le dossier 'api'
 RUN git init && \
-    git remote add origin https://github.com/brandgit/dashteams.git && \
+    git remote add origin https://github.com/brandgit/projet-api.git && \
     git config core.sparseCheckout true && \
     echo "api/" >> .git/info/sparse-checkout && \
     git pull origin main
 
 # Déplacer dans le répertoire 'api' qui a été cloné
-WORKDIR /usr/src/app/api
+WORKDIR /usr/src/app
 
 # Supprimer tout cache résiduel et node_modules local
 RUN rm -rf node_modules package-lock.json
